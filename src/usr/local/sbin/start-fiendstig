@@ -1,0 +1,9 @@
+#! /bin/bash --
+
+# ${root_dir}/sbin/start-fiendstig
+# hintopintomintodoo@gmail.com
+# tested with:	ipset v7.10
+#		iptables v1.8.7
+
+# Notes: This is partially being the template, and document file
+#        as you will see going through the comments ' '. 
