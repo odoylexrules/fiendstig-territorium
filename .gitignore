@@ -48,6 +48,7 @@
 # Nano editor shinanigans
 *.save
 *.nano
+*.swp
 
 # Kernel Module Compile Results
 *.mod*
