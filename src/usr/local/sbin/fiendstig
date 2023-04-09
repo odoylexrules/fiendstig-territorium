@@ -1,0 +1,63 @@
+#! /bin/bash --
+
+
+# If SSHD is configured, and enabled, run rules to permit connections
+# - Pre-set this config to define a custom config file. else, openssh default
+sshd_config="${sshd_config:-/etc/ssh/sshd_config}"
+# Do I know you?
+iptables -t raw -A PREROUTING -m rpfilter --invert -j DROP
+iptables -t raw -A PREROUTING -s 224.0.0.0/3 -j DROP
+iptables -t raw -A PREROUTING -s 169.254.0.0/16 -j DROP
+iptables -t raw -A PREROUTING -s 172.16.0.0/12 -j DROP
+iptables -t raw -A PREROUTING -s 192.0.2.0/24 -j DROP
+iptables -t raw -A PREROUTING -s 10.0.0.0/8 -j DROP
+iptables -t raw -A PREROUTING -s 0.0.0.0/8 -j DROP
+iptables -t raw -A PREROUTING -s 240.0.0.0/5 -j DROP
+iptables -t raw -A PREROUTING -s 127.0.0.0/8 ! -i lo -j DROP
+
+# dropping all the noise!
+iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
+iptables -t mangle -A PREROUTING -p tcp -m conntrack --ctstate NEW \
+ -m tcpmss ! --mss 536:65535 -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,RST FIN,RST -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags FIN,ACK FIN -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,URG URG -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags ACK,PSH PSH -j DROP
+iptables -t mangle -A PREROUTING -p tcp --tcp-flags ALL NONE -j DROP
+
+
+iptables -N LAD4
+iptables -A LAD4 -m connlimit --connlimit-above 3 -j DROP
+iptables -A LAD4 -j LOG --log-prefix "ipt4 denied: " --log-level 7
+iptables -A LAD4 -j DROP
+iptables -N LAR4
+iptables -A LAR4 -m connlimit --connlimit-above 7 -j LAD4
+iptables -A LAR4 -j LOG --log-prefix "ipt4 rejected: " --log-level 7
+iptables -A LAR4 -p tcp -j REJECT --reject-with tcp-reset
+iptables -A LAR4 -p udp -j REJECT --reject-with icmp-port-unreachable
+iptables -A LAR4 -j REJECT --reject-with icmp-proto-unreachable
+iptables -N TCP4
+# Too much noise will get logged and rejected, and eventually dropped
+iptables -A TCP4 -p tcp -m connlimit --connlimit-above 80 -j LAR4
+iptables -A TCP4 -p tcp -m recent --update --rsource --seconds 60 \
+ --name TCP4-PSCAN -j LAD4
+iptables -N UDP4
+iptables -A UDP4 -p udp -m recent --update --rsource --seconds 60 \
+ --name UDP4-PSCAN -j LAD4
+
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+iptables -A INPUT -i lo -s 127.0.0.0/8 -j ACCEPT
+iptables -A INPUT -p icmp -m conntrack --ctstate NEW -j DROP
+iptables -A INPUT -p icmp -j ACCEPT
+iptables -A INPUT -p udp -m conntrack --ctstate NEW -j UDP4
+iptables -A INPUT -p tcp --syn -m conntrack --ctstate NEW \
+ -m limit --limit 60/s --limit-burst 20 -j TCP4
+iptables -A INPUT -p udp -m recent --set --rsource --name UDP4-PSCAN -j LAR4
+iptables -A INPUT -p tcp -m recent --set --rsource --name TCP4-PSCAN -j LAR4
+iptables -A INPUT -j LAR4

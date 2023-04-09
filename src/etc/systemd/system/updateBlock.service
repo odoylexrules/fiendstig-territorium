@@ -1,0 +1,15 @@
+# This service unit was crafted by miphix@insomnia247.nl
+# See: https://opensource.com/article/20/7/systemd-timers
+#    & https://forums.gentoo.org/viewtopic-t-863121-start-0.html
+# GPL v2
+
+[Unit]
+  Description="This service unit triggers an update of the ipset 'block'.'
+  Wants=updateBlock.timer
+
+[Service]
+  Type=oneshot
+  ExecStart=/usr/local/bin/block
+
+[Install]
+  WantedBy=multi-user.target

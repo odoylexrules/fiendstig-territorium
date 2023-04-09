@@ -1,0 +1,17 @@
+# This timer unit was crafted by miphix@insomnia247.nl
+# GPL v2
+
+
+[Unit]
+  Description="time event triggerreerrer"
+  Requires=updateBlock.service
+
+[Timer]
+  Unit=updateBlock.service
+  OnCalendar=*-*-* *:9:*
+  OnCalendar=*-*-* *:24:*
+  OnCalendar=*-*-* *:39:*
+  OnCalendar=*-*-* *:54:*
+
+[Install]
+  WantedBy=timers.target
