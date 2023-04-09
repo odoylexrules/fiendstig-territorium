@@ -1,0 +1,15 @@
+# This service unit was crafted by miphix@insomnia247.nl
+# See: https://opensource.com/article/20/7/systemd-timers
+#    & https://forums.gentoo.org/viewtopic-t-863121.html
+# GPL v2
+
+[Unit]
+  Description="This service unit triggers an update of the ipset 'ipdeny ~National`."
+  Wants=updateIpdeny.timer
+
+[Service]
+  Type=oneshot
+  Execstart=/usr/local/bin/update-ipdeny
+
+[Install]
+  WantedBy=multi-user.target

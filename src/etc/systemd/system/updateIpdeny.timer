@@ -1,0 +1,14 @@
+# This timer unit was crafted by miphix@insomnia247.nl
+# GPL v2
+
+[Unit]
+  Description="time event to trigger updates to ipset lists: ~National"
+  Requires=updateIpdeny.service
+
+[Timer]
+  Unit=updateIpdeny.service
+  OnCalendar=*-*-*  5:09:*
+  OnCalendar=*-*-* 15:09:*
+
+[Install]
+  WantedBy=timers.target
