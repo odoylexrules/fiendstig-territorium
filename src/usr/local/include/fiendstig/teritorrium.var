@@ -1,0 +1,58 @@
+# Since we all don't have the same flavor of linux, and I seem
+#+ to prefer absolute paths. I have these two variables set to
+#+ assist in cutting down typing, as well as interoperability.
+ip4="$(which iptables)"
+ip6="$(which ip6tables)"
+
+# Enter the ifaces you want IPv6 available to, if needed
+ipv6_ifaces=(
+
+  eth0
+  ##eth1
+
+)
+
+local_area=(
+
+  eth0
+  ##eth1
+
+)
+
+intranets=(
+
+  172.17.32.0/28
+
+)
+
+# I like shortening my typing where ever possible. So, the
+#+ following is to help shorten that a bit more.
+raw4=${ip4}' -t raw';		raw6=${ip6}' -t raw'
+man4=${ip4}' -t mangle';	man6=${ip6}' -t mangle'
+nat4=${ip4}' -t nat';		nat6=${ip6}' -t nat'
+sec4=${ip4}' -t security';	sec6=${ip6}' -t security'
+
+# Some functions will end up changing sysctl configurations
+#+ mid-flight. So, to follow suite:
+sys="$(which sysctl)"
+
+## To handle IPv6 preferences, I typically leave ::1 available
+#+ on loopback. Eitherway, I'm testing for IPv6 configured 
+#+ status of availability.
+## IPv6 full disable
+if [[ "$(sysctl -b net.ipv6.conf.default.disable_ipv6)" = '1' ]] && \
+ [[ "$(sysctl -b net.ipv6.conf.all.disable_ipv6)" = '1' ]]; then
+      ## IPv6 part disabled( !loopback; but, default is disabled
+    if [[ "$(sysctl -b net.ipv6.conf.lo.disable_ipv6)" = '1' ]]; then
+        disable_ipv6=1
+    elif [[ "$(sysctl -b net.ipv6.conf.lo.disable_ipv6)" = '0' ]]; then
+        disable_ipv6=2
+    fi
+## IPv6 part disable(loop back, wan0; default disabled)
+#elif [[ 
+## IPv6 full enabled
+elif [[ "$(sysctl -b net.ipv6.conf.default.disable_ipv6)" = '0' ]] && \
+  [[ "$(sysctl -b net.ipv6.conf.all.disable_ipv6)" = '0' ]]; then
+    disable_ipv6=0
+fi
+# endif'r sumthin
