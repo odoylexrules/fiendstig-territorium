@@ -1,5 +1,17 @@
 #! /bin/bash --
+
 # /usr/local/bin/block
+# BoneKracker
+# Rev. 11 October 2012
+# Tested with ipset 6.13
+
+# Purpose: Load DShield.org Recommended Block List into an ipset in a running
+# firewall. That list contains the networks from which the most malicious
+# traffic is being reported by DShield participants.
+
+# Notes: Call this from crontab. Feed updated every 15 minutes.
+# netmask=24: dshield's list is all class C networks
+# hashsize=64: default is 1024! but, 64 is more than needed here
 
 
 target="${target:-https://feeds.dshield.org/block.txt}"
