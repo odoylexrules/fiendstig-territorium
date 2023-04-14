@@ -10,6 +10,11 @@
 [Service]
   Type=oneshot
   ExecStart=/usr/local/bin/block
+  # See bird_watching.service
+  #@: https://baeldung.com/linux/redirect-systemd-output-to-file
+  # In addition, TODO: Please revise for systemd log mechanisms.
+  #StandardOutput=append:/var/log/fiendstig.log
+  #StandardError=append:/var/log/
 
 [Install]
   WantedBy=multi-user.target
